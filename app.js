@@ -99,6 +99,7 @@ function render(s) {
     <div class="tiny">${esc(x.text)}</div>
   </div>`).join("");
 
+  renderExperts(s);
   renderTrades(s);
   renderDebate(s);
   renderLook(s);
@@ -133,6 +134,17 @@ function statusPill(t) {
   const st = t.status || "filled";
   if (st === "pending" || st === "paused_gap") return "wait";
   return "in";
+}
+
+function renderExperts(s) {
+  const box = $("expertGrid");
+  if (!box) return;
+  const experts = ((s.config || {}).experts || []);
+  box.innerHTML = experts.map((e) => `<article class="expert">
+    <div class="who">${esc(e.name)}</div>
+    <div class="job">${esc(e.group || "席位")} · ${esc(e.seat)}（${esc(e.short)}）</div>
+    <p>${esc(e.duty || "")}</p>
+  </article>`).join("");
 }
 
 function renderTrades(s) {
