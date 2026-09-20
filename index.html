@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI投資網</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="kicker">以 1,000,000 美元模擬投資 · 自 2026 年 9 月 21 日起</div>
+      <h1>AI投資網</h1>
+      <div class="sub">VOO 為核心 · MAG7 僅可相對指數超配 · 6–12 個月 · 寧願錯過，亦不要大幅回撤 · 市未開不得成交</div>
+    </div>
+    <div class="clocks">
+      <div>香港 <b id="hkClock">—</b></div>
+      <div>美東 <b id="nyClock">—</b></div>
+      <div><span class="badge" id="sessBadge">—</span></div>
+      <div class="tiny" id="sessHint"></div>
+    </div>
+  </header>
+
+  <div class="banner" id="startBanner"></div>
+  <section class="stats" id="stats"></section>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-page="overview">總覽</button>
+    <button class="tab" data-page="trades">買賣紀錄</button>
+    <button class="tab" data-page="debate">委員會盤問</button>
+    <button class="tab" data-page="look">透視倉位</button>
+    <button class="tab" data-page="news">新聞台</button>
+    <button class="tab" data-page="rules">規則</button>
+  </nav>
+
+  <main>
+    <section class="page on" id="page-overview">
+      <div class="ticker-row" id="tickers"></div>
+      <div class="grid-2">
+        <div class="card">
+          <h2>持倉</h2>
+          <div class="tiny" id="mtmNote"></div>
+          <div style="overflow:auto"><table id="posTable"></table></div>
+        </div>
+        <div class="card">
+          <h2>現價共識</h2>
+          <table id="consTable"></table>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:18px" id="scenarioBox"></div>
+    </section>
+
+    <section class="page" id="page-trades">
+      <div class="card paper" style="margin-bottom:16px">
+        <h2>每一筆買賣均須寫明原因</h2>
+        <p class="tiny" style="margin:0">模擬投資自 2026 年 9 月 21 日美東正規盤開始。市未開時下列只是委託，不是成交。並非券商落單，亦非投資建議。</p>
+      </div>
+      <div id="tradeList"></div>
+      <div class="card" style="margin-top:8px">
+        <h3>未執行的決定，同樣須寫明原因</h3>
+        <div id="noTrade"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-debate">
+      <div id="debateBox"></div>
+    </section>
+
+    <section class="page" id="page-look">
+      <div class="card">
+        <h2>VOO 內含 + 主動超配 = 真正暴露</h2>
+        <p class="tiny">買入 VOO 即已持有 MAG7。下表顯示真正暴露。若只看「主動買入哪幾隻」，會嚴重低估 NVDA／AAPL。</p>
+        <table id="lookTable"></table>
+        <p class="tiny" id="lookSum"></p>
+      </div>
+    </section>
+
+    <section class="page" id="page-news">
+      <div class="card">
+        <h2>僅升級事項才提交委員會</h2>
+        <div id="newsList"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-rules">
+      <div class="grid-2">
+        <div class="card">
+          <h2>硬規則</h2>
+          <ul class="rules" id="rulesList"></ul>
+        </div>
+        <div class="card">
+          <h2>加倉線 · 減持檢討</h2>
+          <table id="levelsTable"></table>
+          <p class="tiny" style="margin-top:14px">夜盤、盤前及盤後預設不開新倉。即使 12 月 6 日起接近 23 小時交易，此規則仍然適用。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot" id="foot"></footer>
+  <script src="app.js"></script>
+</body>
+</html>
