@@ -324,6 +324,25 @@ td.num, th.num { text-align: right; }
 
 .rules li { margin: 0 0 8px; line-height: 1.55; }
 
+.essay h2 { margin: 0 0 10px; }
+.essay h3 {
+  font-family: var(--serif);
+  font-size: 18px;
+  margin: 22px 0 8px;
+}
+.essay p, .essay li {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+.essay ol, .essay ul { padding-left: 1.3em; margin: 0 0 12px; }
+.essay .lead {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
 .foot {
   padding: 8px 28px 28px;
   color: var(--muted);
