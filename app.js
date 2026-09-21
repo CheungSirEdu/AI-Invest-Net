@@ -34,12 +34,12 @@ function render(s) {
   const banner = $("startBanner");
   const pendingNow = (s.portfolio && s.portfolio.pending_count) || 0;
   if (banner) {
-    if (pendingNow || sess.code !== "REGULAR") {
+    if (!sess.can_trade) {
       banner.className = "banner";
-      banner.innerHTML = "<b>此刻不可買賣。</b> 模擬投資的真正開始是 2026 年 9 月 21 日（星期一）美東 09:30 正規盤開市（香港 21:30）。開市前現金仍為 1,000,000 美元，五筆買入只是待成交委託，不是持倉。";
+      banner.innerHTML = "<b>此刻不可買賣。</b> 只可在美東正規盤（09:30–16:00）按即時公開價模擬成交。盤前、盤後、夜盤一律不得買賣。真正開始是 2026 年 9 月 21 日開市之後。現金仍為 1,000,000 美元，下列只是待成交委託。";
     } else {
       banner.className = "banner live";
-      banner.innerHTML = "<b>正規盤進行中。</b> 待成交委託將按當時公開價模擬成交；跳空超過 2% 則暫停該標的。";
+      banner.innerHTML = "<b>正規盤進行中。</b> 只按即時公開價成交，不用隔夜價。盤前盤後仍然不得新開倉。跳空超過 2% 則暫停該標的。";
     }
   }
 
@@ -107,20 +107,33 @@ function render(s) {
   renderRules(s);
 
   const extra = s.server || {};
-  $("foot").innerHTML = `本機二十四小時儀表板 · 報價來源為 CNBC／Nasdaq 公開行情 · 最近輪詢 ${extra.last_poll_at || "尚未"} · 成功 ${extra.poll_ok || 0}／失敗 ${extra.poll_fail || 0}${extra.last_poll_error ? " · " + extra.last_poll_error : ""}<br/>此為模擬委員會，並非投資建議，亦不會在券商代為落單。`;
+  $("foot").innerHTML = `二十四小時儀表板 · 盤前／盤後／正規盤即時公開行情（Nasdaq 最新成交，CNBC 基本面）· 最近更新 ${extra.last_poll_at || "尚未"} · 成功 ${extra.poll_ok || 0}／失敗 ${extra.poll_fail || 0}${extra.last_poll_error ? " · " + extra.last_poll_error : ""}<br/>盤前盤後報價只供觀察，不得模擬成交。此為模擬委員會，並非投資建議，亦不會在券商代為落單。`;
 }
 
 function stat(label, value, extraClass = "") {
   return `<div class="stat"><span>${label}</span><strong class="${extraClass}">${value}</strong></div>`;
 }
 
+function quoteSessLabel(q, sess) {
+  if (q.price_label) return q.price_label;
+  const raw = String(q.quote_session || q.status || (sess && sess.code) || "").toUpperCase();
+  if (raw.includes("PRE")) return "盤前";
+  if (raw.includes("POST")) return "盤後";
+  if (raw.includes("REG") || raw.includes("OPEN")) return "正規盤";
+  if (raw.includes("CLOSE")) return "收市";
+  return (sess && sess.label) || "";
+}
+
 function tickCard(s, sym) {
   const q = (s.quotes || {})[sym] || {};
   const c = (s.consensus || []).find((x) => x.symbol === sym) || {};
+  const sess = s.session || {};
+  const kind = quoteSessLabel(q, sess);
+  const stamp = q.asof_label || q.asof || "";
   return `<div class="tick">
     <div class="row1"><span class="sym">${sym}</span><span class="pill ${pillClass(c.action)}">${esc(c.action || "—")}</span></div>
     <div class="px ${clsPnL(q.change)}">${fmt(q.price)} <span style="font-size:12px">${pct(q.change_pct)}</span></div>
-    <div class="meta">${esc(q.name || "")} · PE ${q.pe ?? "—"} · 前瞻 ${q.fpe ?? "—"}<br/>52週 ${q.low52 ?? "—"} – ${q.high52 ?? "—"}</div>
+    <div class="meta">${esc(q.name || "")} · <span class="sess-tag">${esc(kind)}</span> ${esc(stamp)}<br/>PE ${q.pe ?? "—"} · 前瞻 ${q.fpe ?? "—"} · 52週 ${q.low52 ?? "—"} – ${q.high52 ?? "—"}</div>
   </div>`;
 }
 
@@ -278,12 +291,30 @@ function esc(s) {
     .replace(/>/g, "&gt;");
 }
 
+function showPage(id) {
+  if (!id) return;
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.dataset.page === id));
+  document.querySelectorAll(".page").forEach((p) => p.classList.toggle("on", p.id === "page-" + id));
+  if (location.hash.replace("#", "") !== id) {
+    history.replaceState(null, "", "#" + id);
+  }
+  if (id === "ask") {
+    const input = $("chatInput");
+    if (input) input.focus();
+  }
+}
+
 document.getElementById("tabs").addEventListener("click", (e) => {
   const btn = e.target.closest(".tab");
   if (!btn) return;
-  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t === btn));
-  document.querySelectorAll(".page").forEach((p) => p.classList.toggle("on", p.id === "page-" + btn.dataset.page));
+  showPage(btn.dataset.page);
 });
+
+window.addEventListener("hashchange", () => {
+  const id = (location.hash || "").replace("#", "");
+  if (id) showPage(id);
+});
+if (location.hash) showPage(location.hash.replace("#", ""));
 
 function clientSession() {
   const hk = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Hong_Kong" }).replace(" ", "T") + "+08:00";
@@ -314,27 +345,200 @@ function clientSession() {
     twenty_three_live: false,
     next_open_hint: "下一個正規盤：星期一 美東 09:30（香港 21:30）",
     night_new_positions: false,
+    can_trade: code === "REGULAR" && nyStr.slice(0, 10) >= "2026-09-21",
+    trade_rule: "只可在美東正規盤按即時公開價模擬成交。盤前、盤後、夜盤不得買賣。",
   };
+}
+
+const QUOTE_FEEDS = [
+  "https://raw.githubusercontent.com/CheungSirEdu/AI-Invest-Net/main/quotes.json",
+  "quotes.json",
+];
+
+async function overlayLiveQuotes(s) {
+  if (s.server && s.server.mode !== "static" && s.server.last_poll_at) return s;
+  for (const url of QUOTE_FEEDS) {
+    try {
+      const sep = url.includes("?") ? "&" : "?";
+      const res = await fetch(url + sep + "t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) continue;
+      const payload = await res.json();
+      const q = payload.quotes || payload;
+      if (!q || !q.VOO || q.VOO.price == null) continue;
+      s.quotes = Object.assign({}, s.quotes || {}, q);
+      s.server = Object.assign({}, s.server || {}, {
+        last_poll_at: payload.asof || q.VOO.asof || s.server.last_poll_at,
+        live: true,
+      });
+      if (payload.session && payload.session.code) s.session = payload.session;
+      return s;
+    } catch (e) {}
+  }
+  return s;
 }
 
 async function loadState() {
   try {
     const res = await fetch("/api/state", { cache: "no-store" });
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const s = await res.json();
+      if (s.server && s.server.mode !== "static") return s;
+      return overlayLiveQuotes(s);
+    }
   } catch (e) {}
-  const res = await fetch("data.json", { cache: "no-store" });
+  const res = await fetch("data.json?" + Date.now(), { cache: "no-store" });
   const s = await res.json();
   s.session = clientSession();
-  return s;
+  return overlayLiveQuotes(s);
+}
+
+let bootTimer = null;
+function scheduleBoot(ms) {
+  if (bootTimer) clearInterval(bootTimer);
+  bootTimer = setInterval(boot, ms);
 }
 
 async function boot() {
   try {
     const s = await loadState();
     render(s);
+    const code = (s.session && s.session.code) || clientSession().code;
+    scheduleBoot(code === "REGULAR" || code === "PRE" || code === "POST" ? 10000 : 20000);
   } catch (err) {
     $("foot").textContent = "載入失敗：" + err;
+    scheduleBoot(15000);
   }
 }
 boot();
-setInterval(boot, 30000);
+
+function appendChat(html) {
+  const log = $("chatLog");
+  if (!log) return;
+  const d = document.createElement("div");
+  d.innerHTML = html;
+  while (d.firstChild) log.appendChild(d.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderAskResult(question, r) {
+  const chair = r.chair || {};
+  const quote = r.quote || {};
+  const views = r.views || [];
+  const news = r.headlines || [];
+  const challenges = r.challenges || chair.challenges || [];
+  const viewHtml = views.length
+    ? `<div class="chat-experts">${views.map((v) =>
+        `<article class="chat-expert"><div class="who">${esc(v.name || "")} · ${esc(v.short || v.seat || "")} · ${esc(v.stance || "")}</div><p>${esc(v.text || "")}</p></article>`
+      ).join("")}</div>`
+    : "";
+  const newsHtml = news.length
+    ? `<p class="tiny">已讀新聞</p><ul class="chat-news">${news.slice(0, 8).map((n) =>
+        `<li>${esc(n.title || "")}${n.source ? " <span class='tiny'>（" + esc(n.source) + "）</span>" : ""}</li>`
+      ).join("")}</ul>`
+    : "";
+  const chHtml = challenges.length
+    ? `<div class="chat-challenges"><p class="tiny">互相質詢</p>${challenges.map((c) =>
+        `<div class="qa"><div class="seat">${esc(c.from || "")} → ${esc(c.to || "")}</div><div class="q">問：${esc(c.q || "")}</div><div class="a">答：${esc(c.a || "")}</div></div>`
+      ).join("")}</div>`
+    : "";
+  const exec = chair.execution || "";
+  const execNote = chair.execution_note || "";
+  appendChat(`<div class="bubble user"><div class="who">你</div>${esc(question)}</div>`);
+  appendChat(`<div class="bubble bot">
+    <div class="who">委員會 · ${esc(r.engine || "十一席")}</div>
+    <div class="verdict">${esc(chair.action || r.summary || "")}</div>
+    ${exec ? `<div class="exec-note">${esc(exec)}${execNote ? " · " + esc(execNote) : ""}</div>` : ""}
+    <p>${esc(r.summary || chair.summary || "")}</p>
+    <p class="tiny">${esc(quote.symbol || "")} 現價 ${quote.price != null ? fmt(quote.price) : "—"} · 時段 ${esc(quote.quote_session || quote.status || "")} · ${esc(quote.asof_label || "")}</p>
+    ${newsHtml}
+    ${viewHtml}
+    ${chHtml}
+    <p class="tiny">${esc(r.disclaimer || "")}</p>
+  </div>`);
+}
+
+async function sendQuestion(question) {
+  const btn = $("chatSend");
+  const input = $("chatInput");
+  const stripBtn = document.querySelector("#askStripForm button");
+  if (btn) btn.disabled = true;
+  if (stripBtn) stripBtn.disabled = true;
+  showPage("ask");
+  appendChat(`<div class="bubble bot" id="chatWait"><div class="who">委員會</div>十一席正在讀即時報價、新聞台與頭條，隨後互相質詢……</div>`);
+  try {
+    let res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) throw new Error("http " + res.status);
+    const r = await res.json();
+    const wait = document.getElementById("chatWait");
+    if (wait) wait.remove();
+    if (!r.ok && r.error) {
+      appendChat(`<div class="bubble bot"><div class="who">委員會</div>${esc(r.error)}</div>`);
+    } else {
+      renderAskResult(question, r);
+    }
+  } catch (err) {
+    const wait = document.getElementById("chatWait");
+    if (wait) wait.remove();
+    appendChat(`<div class="bubble bot"><div class="who">委員會</div>未能連到本機委員會引擎。請用 <code>http://127.0.0.1:8790/</code> 打開本站再問。公開網頁只能展示紀錄，即時十一席答問需要本機儀表板。${esc(String(err))}</div>`);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (stripBtn) stripBtn.disabled = false;
+    if (input) input.focus();
+  }
+}
+
+(function wireChat() {
+  const form = $("chatForm");
+  if (!form || form.dataset.wired) return;
+  form.dataset.wired = "1";
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("chatInput");
+    const q = (input && input.value || "").trim();
+    if (!q) return;
+    input.value = "";
+    sendQuestion(q);
+  });
+  const hints = $("chatHints");
+  if (hints) {
+    hints.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-q]");
+      if (!b) return;
+      sendQuestion(b.getAttribute("data-q"));
+    });
+  }
+  const strip = $("askStripForm");
+  if (strip && !strip.dataset.wired) {
+    strip.dataset.wired = "1";
+    strip.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = $("askStripInput");
+      const q = (input && input.value || "").trim();
+      if (!q) return;
+      input.value = "";
+      sendQuestion(q);
+    });
+  }
+  fetch("/api/chat", { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      const msgs = (d && d.messages) || [];
+      if (!msgs.length) {
+        appendChat(`<div class="bubble bot"><div class="who">委員會</div>輸入代號即可，例如 VOO。會讀報價與新聞，請十一席發言，回答現價值不值得買或賣。非正規盤即使看多也不得成交。</div>`);
+        return;
+      }
+      msgs.forEach((m) => {
+        appendChat(`<div class="bubble user"><div class="who">你</div>${esc(m.question || "")}</div>`);
+        appendChat(`<div class="bubble bot"><div class="who">委員會紀錄</div><div class="verdict">${esc(m.action || "")}</div><p>${esc(m.summary || "")}</p></div>`);
+      });
+    })
+    .catch(() => {
+      appendChat(`<div class="bubble bot"><div class="who">委員會</div>輸入代號即可，例如 VOO。即時十一席答問請用本機 http://127.0.0.1:8790/</div>`);
+    });
+})();
+
+

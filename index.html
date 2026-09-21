@@ -14,7 +14,7 @@
     <div class="brand">
       <div class="kicker">以 1,000,000 美元模擬投資 · 自 2026 年 9 月 21 日起</div>
       <h1>AI投資網</h1>
-      <div class="sub">VOO 為核心 · MAG7 僅可相對指數超配 · 6–12 個月 · 寧願錯過，亦不要大幅回撤 · 市未開不得成交</div>
+      <div class="sub">VOO 為核心 · MAG7 僅可相對指數超配 · 只按正規盤即時價 · 盤前盤後不得買賣</div>
     </div>
     <div class="clocks">
       <div>香港 <b id="hkClock">—</b></div>
@@ -29,6 +29,7 @@
 
   <nav class="tabs" id="tabs">
     <button class="tab on" data-page="overview">總覽</button>
+    <button class="tab" data-page="ask">問委員會</button>
     <button class="tab" data-page="concept">概念</button>
     <button class="tab" data-page="experts">專家</button>
     <button class="tab" data-page="trades">買賣紀錄</button>
@@ -53,6 +54,14 @@
         </div>
       </div>
       <div class="grid-3" style="margin-top:18px" id="scenarioBox"></div>
+      <div class="card paper ask-strip" style="margin-top:18px">
+        <h2>問委員會</h2>
+        <p class="tiny">輸入代號即可，例如 VOO。系統會讀即時報價、新聞台與頭條，請十一席發言，回答現價值不值得買或賣。</p>
+        <form class="chat-form" id="askStripForm">
+          <input id="askStripInput" maxlength="300" autocomplete="off" placeholder="VOO" />
+          <button type="submit">問</button>
+        </form>
+      </div>
       <div class="card paper" style="margin-top:18px">
         <h2>這是什麼</h2>
         <p class="tiny" style="margin:0">本站用十一個不同領域的視角互相質詢，再對 VOO 與 MAG7 做模擬投資。完整方法見「概念」，名單與職責見「專家」。這不是投資建議，亦不會在券商代為落單。</p>
@@ -66,7 +75,7 @@
 
         <h3>為何不是單一看法</h3>
         <p>美股「Magnificent 7」（MAG7）是 Apple、Microsoft、NVIDIA、Amazon、Alphabet、Meta、Tesla。這七家佔標普 500 約三分之一。只聽人工智能故事，容易追高；只聽估值，又可能錯過有現金流的公司。因此一開始便設定：不要一個人扮成全部專家，而要用多個互不抄襲的視角。</p>
-        <p>期限是 6 至 12 個月。風格是核心長持。風險偏好是：寧願錯過機會，也不要大幅回撤。目標是賺錢，但不是為了入場而入場，更不是夜盤追價。</p>
+        <p>期限是 6 至 12 個月。風格是核心長持。風險偏好是：寧願錯過機會，也不要大幅回撤。目標是賺錢，但不是為了入場而入場，更不是夜盤追價。之後若要問單一股票，用「問委員會」：系統會再讀報價與新聞，請十一席發言，由主席回答值不值得買或賣。</p>
 
         <h3>十一個席位</h3>
         <p>常設八席，再加三席處理新聞、夜盤，以及 VOO 與主動倉的重複暴露。各人姓名與職責見「專家」一頁。概要如下：</p>
@@ -95,13 +104,32 @@
 
         <h3>模擬盤怎樣做</h3>
         <p>本金 1,000,000 美元。標的是 Vanguard 標普 500 ETF（VOO）加 MAG7。VOO 做核心底倉；MAG7 只在委員會認為現價值得超配時，才額外買入。現金可以很多。分批買入，不在第一日把資金用完。</p>
-        <p>市未開，不得成交。真正開始是 2026 年 9 月 21 日（星期一）美東 09:30 正規盤。開市前的清單只是待成交委託。開盤若較參考價跳空超過 2%，該標的暫停，交回委員會。夜盤、盤前、盤後不開新倉。不使用槓桿，不賣出期權。</p>
+        <p>投資決定必須根據即時公開數據，不得用過時收市價假裝已買入。真正開始是 2026 年 9 月 21 日美東 09:30 正規盤開市之後。盤前、盤後、夜盤一律不得買賣。開市前的清單只是待成交委託。正規盤開出即時價後，若較參考價跳空超過 2%，該標的暫停，交回委員會。不使用槓桿，不賣出期權。</p>
         <p>每一筆買入、以及決定不買，都必須寫明原因，包括被質疑之後為何仍然如此。這是給自己覆盤，也方便公開給人看這套方法如何運作。</p>
 
         <h3>這不是什麼</h3>
         <p>這不是券商戶口，不會代人落單。不是保證賺錢。不是 24 小時自動炒賣。監察可以 round-the-clock，交易仍然節制。公開放上網，是為了讓人看見：多視角互相質詢、現價共識、透視倉位、以及「寧願錯過」如何寫成可執行的規則。</p>
         <p>分數線是同一百萬全數投入 VOO。若超配 MAG7 既跑不贏 VOO，回撤又明顯更大，就不應該超配。</p>
       </article>
+    </section>
+
+    <section class="page" id="page-ask">
+      <div class="card paper" style="margin-bottom:14px">
+        <h2>問委員會</h2>
+        <p class="tiny" style="margin:0">輸入代號即可，例如 VOO、NVDA、AAPL。系統會讀即時公開報價、新聞台與 Yahoo 頭條，請十一席各自發言，再由主席回答：現價值不值得買或賣。投資結論與能否成交分開寫。盤前、盤後、夜盤即使看多也不得成交。此為模擬討論，並非投資建議。</p>
+      </div>
+      <div class="chat" id="chatBox">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-hints" id="chatHints">
+          <button type="button" data-q="VOO">VOO</button>
+          <button type="button" data-q="NVDA">NVDA</button>
+          <button type="button" data-q="AAPL">AAPL</button>
+        </div>
+        <form class="chat-form" id="chatForm">
+          <input id="chatInput" maxlength="300" autocomplete="off" placeholder="輸入代號，例如 VOO" />
+          <button type="submit" id="chatSend">送出</button>
+        </form>
+      </div>
     </section>
 
     <section class="page" id="page-experts">
@@ -115,7 +143,7 @@
     <section class="page" id="page-trades">
       <div class="card paper" style="margin-bottom:16px">
         <h2>每一筆買賣均須寫明原因</h2>
-        <p class="tiny" style="margin:0">模擬投資自 2026 年 9 月 21 日美東正規盤開始。市未開時下列只是委託，不是成交。並非券商落單，亦非投資建議。</p>
+        <p class="tiny" style="margin:0">只按正規盤即時公開價成交。盤前、盤後、夜盤不得買賣。開市前下列只是委託，不是成交。並非券商落單，亦非投資建議。</p>
       </div>
       <div id="tradeList"></div>
       <div class="card" style="margin-top:8px">
@@ -153,7 +181,7 @@
         <div class="card">
           <h2>加倉線 · 減持檢討</h2>
           <table id="levelsTable"></table>
-          <p class="tiny" style="margin-top:14px">夜盤、盤前及盤後預設不開新倉。即使 12 月 6 日起接近 23 小時交易，此規則仍然適用。</p>
+          <p class="tiny" style="margin-top:14px">盤前、盤後、夜盤一律不得買賣。即使 12 月 6 日起接近 23 小時交易，此規則仍然適用。成交必須用即時正規盤價。</p>
         </div>
       </div>
     </section>
