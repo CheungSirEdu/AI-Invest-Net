@@ -350,19 +350,23 @@ function clientSession() {
   };
 }
 
-const QUOTE_FEEDS = [
+const LIVE_STATE_FEEDS = [
+  "https://raw.githubusercontent.com/CheungSirEdu/AI-Invest-Net/main/data.json",
   "https://raw.githubusercontent.com/CheungSirEdu/AI-Invest-Net/main/quotes.json",
-  "quotes.json",
 ];
 
 async function overlayLiveQuotes(s) {
   if (s.server && s.server.mode !== "static" && s.server.last_poll_at) return s;
-  for (const url of QUOTE_FEEDS) {
+  for (const url of LIVE_STATE_FEEDS) {
     try {
-      const sep = url.includes("?") ? "&" : "?";
-      const res = await fetch(url + sep + "t=" + Date.now(), { cache: "no-store" });
+      const res = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
       if (!res.ok) continue;
       const payload = await res.json();
+      if (payload.quotes && payload.quotes.VOO && payload.quotes.VOO.price != null && payload.trades) {
+        if (!payload.session || !payload.session.code) payload.session = clientSession();
+        payload.server = Object.assign({}, payload.server || {}, { live: true });
+        return payload;
+      }
       const q = payload.quotes || payload;
       if (!q || !q.VOO || q.VOO.price == null) continue;
       s.quotes = Object.assign({}, s.quotes || {}, q);
@@ -383,9 +387,10 @@ async function loadState() {
     if (res.ok) {
       const s = await res.json();
       if (s.server && s.server.mode !== "static") return s;
-      return overlayLiveQuotes(s);
     }
   } catch (e) {}
+  const live = await overlayLiveQuotes({ server: { mode: "static" } });
+  if (live && live.quotes && live.quotes.VOO) return live;
   const res = await fetch("data.json?" + Date.now(), { cache: "no-store" });
   const s = await res.json();
   s.session = clientSession();
