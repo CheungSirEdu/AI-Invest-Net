@@ -350,10 +350,7 @@ function clientSession() {
   };
 }
 
-const LIVE_STATE_FEEDS = [
-  "https://raw.githubusercontent.com/CheungSirEdu/AI-Invest-Net/main/data.json",
-  "https://raw.githubusercontent.com/CheungSirEdu/AI-Invest-Net/main/quotes.json",
-];
+const LIVE_STATE_FEEDS = ["data.json", "quotes.json"];
 
 async function overlayLiveQuotes(s) {
   if (s.server && s.server.mode !== "static" && s.server.last_poll_at) return s;
